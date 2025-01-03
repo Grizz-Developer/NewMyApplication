@@ -13,7 +13,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,37 +22,41 @@ import com.guit.edu.myapplication.ui.RegisterScreen
 import com.guit.edu.myapplication.ui.UserScreen
 import com.guit.edu.myapplication.ui.theme.MyApplicationTheme
 import com.guit.edu.myapplication.viewmodel.UserViewModel
+import kotlinx.coroutines.flow.first
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val dataStoreUtil = DataStoreUtil
         setContent {
-            AppScreen()
+            var token by remember { mutableStateOf("") }
+            LaunchedEffect(Unit) {
+                token = dataStoreUtil.getToken(this@MainActivity).first()
+            }
+            AppScreen(token)
         }
     }
 }
 
 @Composable
-fun AppScreen(){
+fun AppScreen(token: String){
     val navController = rememberNavController()
-    val context = LocalContext.current
-    var token by remember { mutableStateOf("") }
-    LaunchedEffect(Unit) {
-        DataStoreUtil.getToken(context).collect {
-            token = it
-        }
-    }
 
     MyApplicationTheme {
+        // A surface container using the 'background' color from the theme
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            NavHost(navController = navController, startDestination = "login") {
-                composable("login") { LoginScreen(navController) }
-                composable("register") { RegisterScreen(navController) }
-                composable("main") {
-                    val userViewModel: UserViewModel = viewModel()
+            NavHost(navController = navController, startDestination = "login"){
+                composable(route = "login"){
+                    LoginScreen(navController = navController)
+                }
+                composable(route = "register"){
+                    RegisterScreen(navController = navController)
+                }
+                composable(route = "main"){
+                    val userViewModel : UserViewModel = viewModel()
                     userViewModel.fetchUserInfo(token)
                     UserScreen(viewModel = userViewModel)
                 }
@@ -61,5 +64,3 @@ fun AppScreen(){
         }
     }
 }
-
-

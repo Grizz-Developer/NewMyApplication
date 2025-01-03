@@ -1,5 +1,9 @@
 package com.guit.edu.myapplication.ui
 
+import android.widget.Toast
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,10 +16,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -48,221 +56,168 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.platform.LocalContext
+import com.guit.edu.myapplication.R
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 
 @Composable
 fun UserScreen(viewModel: UserViewModel) {
     val user by viewModel.user.collectAsState()
-    var showEditDialog by remember { mutableStateOf(false) }
-    var showHistoryDialog by remember { mutableStateOf(false) }
-    if (showEditDialog) {
-        EditDialog(user=user, onDismiss = {showEditDialog=false}, viewModel = viewModel)
-    }
-    if(showHistoryDialog){
-        user?.let {  HistoryDialog(username = it.username, onDismiss = {showHistoryDialog=false}, viewModel = viewModel) }
+    val context = LocalContext.current
+    var showDialog by remember { mutableStateOf(false) }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("退出登录") },
+            text = { Text("确定要退出登录吗？") },
+            confirmButton = {
+                Button(onClick = {
+                    // 执行退出登录操作
+                    // ...
+                    showDialog = false
+                    Toast.makeText(context, "退出登录", Toast.LENGTH_SHORT).show()
+                }) {
+                    Text("确定")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("取消")
+                }
+            }
+        )
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color(0xFFE1F5FE)) // 设置背景颜色
             .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        AsyncImage(
-            model = "https://avatars.githubusercontent.com/u/69185151?v=4",
+        // 头像区域
+        Image(
+            painter = painterResource(id = R.drawable.panda),
             contentDescription = "avatar",
-            contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(120.dp)
-                .clip(CircleShape)
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop
         )
         Spacer(modifier = Modifier.height(16.dp))
-        user?.let {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
-                Text(text = "用户名: ${it.username}", style = MaterialTheme.typography.bodyLarge)
-                IconButton(onClick = { showEditDialog=true }) {
-                    Icon(imageVector = Icons.Filled.Edit, contentDescription = "修改")
-                }
-            }
+        Text(text = user?.nickname ?: "昵称", style = MaterialTheme.typography.headlineSmall)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(text = user?.signature ?: "个性签名", style = MaterialTheme.typography.bodyMedium)
 
-            Text(text = "昵称: ${it.nickname}", style = MaterialTheme.typography.bodyLarge)
-            Text(text = "性别: ${it.gender}", style = MaterialTheme.typography.bodyLarge)
-            Text(text = "签名: ${it.signature}", style = MaterialTheme.typography.bodyLarge)
-            Text(text = "身高: ${it.height}", style = MaterialTheme.typography.bodyLarge)
-            Text(text = "体重: ${it.weight}", style = MaterialTheme.typography.bodyLarge)
-            Text(text = "杯子容量: ${it.cupcapacity}", style = MaterialTheme.typography.bodyLarge)
-            Text(text = "饮水任务: ${it.assignment}", style = MaterialTheme.typography.bodyLarge)
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = {showHistoryDialog=true}) {
-                Text(text = "查看历史饮水记录")
-            }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 个人信息区域
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            InfoCard(title = "性别", value = user?.gender ?: "男")
+            InfoCard(title = "身高", value = "${user?.height ?: 0}cm")
+            InfoCard(title = "体重", value = "${user?.weight ?: 0}kg")
+            InfoCard(title = "杯容量", value = "${user?.cupcapacity ?: 0}ml")
         }
 
-    }
+        Spacer(modifier = Modifier.height(16.dp))
 
+        // 打卡区域
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    Toast
+                        .makeText(context, "跳转到打卡页面", Toast.LENGTH_SHORT)
+                        .show()
+                },
+            shape = RoundedCornerShape(8.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFF42A5F5),
+            ),
+        ) {
+            Text(
+                text = "我的打卡",
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 列表区域
+        LazyColumn(modifier = Modifier.weight(1f)) {
+            item { ListItem(text = "每日目标: ${user?.assignment ?: 0}ml") { Toast.makeText(context, "跳转到设置每日目标页面", Toast.LENGTH_SHORT).show() } }
+            item { ListItem(text = "含水量表") { Toast.makeText(context, "跳转到含水量表页面", Toast.LENGTH_SHORT).show() } }
+            item { ListItem(text = "关于我们") { Toast.makeText(context, "跳转到关于我们页面", Toast.LENGTH_SHORT).show() } }
+            item { ListItem(text = "修改密码") { Toast.makeText(context, "跳转到修改密码页面", Toast.LENGTH_SHORT).show() } }
+            item { ListItem(text = "当前版本", trailingText = "1.0") {} }
+            item {
+                ListItem(text = "退出登录") {
+                    showDialog = true
+                }
+            }
+        }
+    }
 }
 
 @Composable
-fun EditDialog(user: User?, onDismiss: () -> Unit, viewModel: UserViewModel) {
-
-    var nickname by remember { mutableStateOf(user?.nickname ?: "") }
-    var gender by remember { mutableStateOf(user?.gender ?: "") }
-    var signature by remember { mutableStateOf(user?.signature ?: "") }
-    var height by remember { mutableStateOf(user?.height?.toString() ?: "") }
-    var weight by remember { mutableStateOf(user?.weight?.toString() ?: "") }
-    var cupcapacity by remember { mutableStateOf(user?.cupcapacity?.toString() ?: "") }
-    var assignment by remember { mutableStateOf(user?.assignment?.toString() ?: "") }
-
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(
-            dismissOnBackPress = true,
-            dismissOnClickOutside = true
-        )
+fun InfoCard(title: String, value: String) {
+    Card(
+        modifier = Modifier.padding(8.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White,
+        ),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            OutlinedTextField(
-                value = nickname,
-                onValueChange = { nickname = it },
-                label = { Text("昵称") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = gender,
-                onValueChange = { gender = it },
-                label = { Text("性别") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = signature,
-                onValueChange = { signature = it },
-                label = { Text("签名") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = height,
-                onValueChange = { height = it },
-                label = { Text("身高") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = weight,
-                onValueChange = { weight = it },
-                label = { Text("体重") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = cupcapacity,
-                onValueChange = { cupcapacity = it },
-                label = { Text("杯子容量") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = assignment,
-                onValueChange = { assignment = it },
-                label = { Text("饮水任务") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = onDismiss) {
-                    Text("取消")
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(onClick = {
-                    val updateUser = User(
-                        id = user?.id ?: 0,
-                        username = user?.username ?: "",
-                        nickname = nickname,
-                        gender = gender,
-                        signature = signature,
-                        height = height.toIntOrNull(),
-                        weight = weight.toIntOrNull(),
-                        cupcapacity = cupcapacity.toIntOrNull(),
-                        assignment = assignment.toIntOrNull()
-                    )
-                    viewModel.updateUserInfo(updateUser)
-                    onDismiss()
-                }) {
-                    Text("确认")
-                }
-            }
+        Column(
+            modifier = Modifier
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = title, color = Color.Gray)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = value, fontWeight = FontWeight.Bold)
         }
     }
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
-fun HistoryDialog(username: String, onDismiss: () -> Unit, viewModel: UserViewModel) {
-    val history by viewModel.history.collectAsState()
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-    var datePickerState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis())
-    var showDatePicker by remember{ mutableStateOf(false)}
-    LaunchedEffect(key1 = datePickerState.selectedDateMillis){
-        datePickerState.selectedDateMillis?.let {
-            val date = LocalDate.ofEpochDay(it / (24 * 60 * 60 * 1000))
-            viewModel.fetchUserHistory(username, date.toString())
+fun ListItem(text: String, trailingText: String? = null, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF42A5F5),
+        ),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = text, color = Color.White, fontWeight = FontWeight.Bold)
+            if (trailingText != null) {
+                Text(text = trailingText, color = Color.White)
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "右箭头",
+                    tint = Color.White
+                )
+            }
         }
     }
-
-    if(showDatePicker){
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text("确认")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text("取消")
-                }
-            }
-        ){
-            DatePicker(state = datePickerState)
-        }
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("饮水记录") },
-        text = {
-            Column {
-                Button(onClick = {showDatePicker = true}) {
-                    Text(text = "选择日期")
-                }
-                history?.let {
-                    if (it.isEmpty()) {
-                        Text("暂无数据")
-                    } else {
-                        LazyColumn{
-                            items(it.size){index ->
-                                val historyItem = it[index]
-                                val localDateTime = historyItem.createdAt?.toInstant()?.atZone(java.time.ZoneId.systemDefault())?.toLocalDateTime()
-                                Text(
-                                    text = "时间:" + (localDateTime?.format(formatter) ?: "未知") + ",饮用量:" + historyItem.drink + ",类型:" + historyItem.type
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("关闭")
-            }
-        }
-    )
-}
-
-
-@Preview
-@Composable
-fun PreviewUserScreen() {
-    val viewModel : UserViewModel = viewModel()
-    UserScreen(viewModel = viewModel)
 }
