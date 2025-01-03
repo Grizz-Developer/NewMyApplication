@@ -12,6 +12,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.guit.edu.myapplication.ui.UserScreen
 import com.guit.edu.myapplication.ui.theme.MyApplicationTheme
 import com.guit.edu.myapplication.viewmodel.UserViewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.guit.edu.myapplication.ui.LoginScreen
+import com.guit.edu.myapplication.ui.RegisterScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,18 +27,31 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
 @Composable
 fun AppScreen(){
+    val navController = rememberNavController()
     MyApplicationTheme {
         // A surface container using the 'background' color from the theme
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            val userViewModel : UserViewModel = viewModel()
-            // TODO: get user token
-            userViewModel.fetchUserInfo("eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjMsInVzZXJuYW1lIjoidGVzdCIsImlhdCI6MTcwMjY0NDU1NCwiZXhwIjoxNzAyNzMwOTU0fQ.Mh2f8N8f1l5z13m06s77H1Xz0N-r1q2P1t1-mXQz94")
-            UserScreen(viewModel = userViewModel)
+            NavHost(navController = navController, startDestination = "login"){
+                composable(route = "login"){
+                    LoginScreen(navController = navController)
+                }
+                composable(route = "register"){
+                    RegisterScreen(navController = navController)
+                }
+                composable(route = "main"){
+                    val userViewModel : UserViewModel = viewModel()
+                    // TODO: get user token
+                    userViewModel.fetchUserInfo("eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjMsInVzZXJuYW1lIjoidGVzdCIsImlhdCI6MTcwMjY0NDU1NCwiZXhwIjoxNzAyNzMwOTU0fQ.Mh2f8N8f1l5z13m06s77H1Xz0N-r1q2P1t1-mXQz94")
+                    UserScreen(viewModel = userViewModel)
+                }
+            }
         }
     }
 }
+

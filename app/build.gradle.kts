@@ -74,6 +74,8 @@ dependencies {
     implementation("com.google.code.gson:gson:2.8.9")
     implementation("com.chargemap.compose:numberpicker:1.0.3")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
+    implementation("androidx.navigation:navigation-compose:2.7.5")
+    implementation("io.coil-kt:coil-compose:2.5.0")
 
 
 

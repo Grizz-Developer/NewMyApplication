@@ -1,11 +1,8 @@
 package com.guit.edu.myapplication.entity
 
-import java.time.LocalDateTime
 
-data class History(
-    var id: String? = null,
-    var username: String? = null,
-    var drink: Int = 0,
-    var type: String? = null,
-    var createdAt: LocalDateTime? = null
-)
+data class History(val id: Int,
+                   val username: String,
+                   val type: Int,
+                   val drink: Int,
+                   val createdAt:java.util.Date)

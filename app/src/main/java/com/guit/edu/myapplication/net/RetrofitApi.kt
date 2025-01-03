@@ -1,53 +1,42 @@
-package com.guit.edu.myapplication.net
+package com.guit.edu.myapplication
 
 import com.guit.edu.myapplication.entity.History
+import com.guit.edu.myapplication.entity.LoginResult
+import com.guit.edu.myapplication.entity.RegisterResult
 import com.guit.edu.myapplication.entity.User
 import io.reactivex.rxjava3.core.Observable
-import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
-import retrofit2.http.Header
 import retrofit2.http.POST
-import retrofit2.http.PUT
-import retrofit2.http.Path
 import retrofit2.http.Query
-import java.util.List
+import retrofit2.http.Header
+import retrofit2.http.Body
 
 interface RetrofitApi {
-    companion object {
-        const val BaseUrl = "http://142.171.116.120:8080/"
-    }
-
-
-    @FormUrlEncoded
-    @POST("user/register")
-    fun register(
-        @Field("username") username: String,
-        @Field("password") password: String,
-        @Field("height") height: Int,
-        @Field("weight") weight: Int
-    ): Observable<Result<String>>
-
-    @FormUrlEncoded
     @POST("user/login")
+    @FormUrlEncoded
     fun login(
         @Field("username") username: String,
         @Field("password") password: String
-    ): Observable<Result<String>>
+    ): Observable<LoginResult>
+
+    @POST("user/register")
+    @FormUrlEncoded
+    fun register(
+        @Field("username") username: String,
+        @Field("password") password: String
+    ): Observable<RegisterResult>
+
 
     @GET("user/info")
-    fun getUserInfo(@Header("Authorization") token: String): Observable<Result<User>>
-
-    @PUT("user/{userId}")
-    fun updateUserInfo(@Path("userId") userId: Int, @Body updateUser: User): Observable<User>
+    fun getUserInfo(@Header("Authorization") token : String): Observable<User>
 
 
-    @GET("history/user/{username}")
-    fun getUserHistory(
-        @Path("username") username: String,
-        @Query("date") date: String
-    ): Observable<List<History>>
+    @GET("user/history")
+    fun getUserHistory(@Query("username") username : String, @Query("date") date : String): Observable<List<History>>
+
+    @POST("user/info/update")
+    fun updateUserInfo(@Query("id") id: Int, @Body user: User): Observable<User>
 
 }
-

@@ -1,7 +1,10 @@
 package com.guit.edu.myapplication.net
 
-data class Result<T>(
-    val code: Int,
-    val message: String,
-    val data: T?
-)
+sealed class Result<out T> {
+    object Idle: Result<Nothing>()
+    object Loading : Result<Nothing>()
+    data class Success<T>(val data: T) : Result<T>()
+    data class Error(val message: String) : Result<Nothing>()
+
+}
+

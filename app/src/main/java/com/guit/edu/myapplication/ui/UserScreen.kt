@@ -1,340 +1,199 @@
 package com.guit.edu.myapplication.ui
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.chargemap.compose.numberpicker.NumberPicker
-import com.guit.edu.myapplication.R
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import coil.compose.AsyncImage
+import com.guit.edu.myapplication.entity.History
 import com.guit.edu.myapplication.entity.User
-import com.guit.edu.myapplication.ui.theme.ButtonColor
 import com.guit.edu.myapplication.viewmodel.UserViewModel
-import java.time.format.DateTimeFormatter
 import java.time.LocalDate
-import androidx.compose.material3.DatePicker as Material3DatePicker
-import androidx.compose.material3.DatePickerDialog as Material3DatePickerDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.ui.text.style.TextAlign
+import java.time.format.DateTimeFormatter
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
+import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.ZoneId
 
 
 @Composable
 fun UserScreen(viewModel: UserViewModel) {
     val user by viewModel.user.collectAsState()
-
-    var showNicknameDialog by remember { mutableStateOf(false) }
-    var showSignatureDialog by remember { mutableStateOf(false) }
-
-    var showGenderPicker by remember { mutableStateOf(false) }
-    var showHeightPicker by remember { mutableStateOf(false) }
-    var showWeightPicker by remember { mutableStateOf(false) }
-    var showCupCapacityPicker by remember { mutableStateOf(false) }
-    var showAssignmentPicker by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
     var showHistoryDialog by remember { mutableStateOf(false) }
+    if (showEditDialog) {
+        EditDialog(user=user, onDismiss = {showEditDialog=false}, viewModel = viewModel)
+    }
+    if(showHistoryDialog){
+        user?.let {  HistoryDialog(username = it.username, onDismiss = {showHistoryDialog=false}, viewModel = viewModel) }
+    }
 
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.panda), // Replace with your image
-            contentDescription = "User Avatar",
+        AsyncImage(
+            model = "https://avatars.githubusercontent.com/u/69185151?v=4",
+            contentDescription = "avatar",
+            contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(120.dp)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop
+                .clip(CircleShape)
         )
-
-        Spacer(modifier = Modifier.height(8.dp))
-        // Nickname
-        Text(
-            text = user?.nickname ?: "点击设置昵称",
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { showNicknameDialog = true },
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center
-        )
-
-
-        // Signature
-        Text(
-            text = user?.signature ?: "点击设置个性签名",
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { showSignatureDialog = true },
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Display the user's info in rows
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-
-            // Gender Button
-            Button(onClick = { showGenderPicker = true }, colors = ButtonDefaults.buttonColors(containerColor = ButtonColor)) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("性别")
-                    Text(user?.gender ?: "未选择", color = Color.Black)
-
-                }
-            }
-            // Height Button
-            Button(onClick = { showHeightPicker = true }, colors = ButtonDefaults.buttonColors(containerColor = ButtonColor)) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("身高")
-                    Text("${user?.height ?: 0}cm", color = Color.Black)
-                }
-            }
-            // Weight Button
-            Button(onClick = { showWeightPicker = true }, colors = ButtonDefaults.buttonColors(containerColor = ButtonColor)) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("体重")
-                    Text("${user?.weight ?: 0}kg", color = Color.Black)
-                }
-            }
-            // Cup Capacity Button
-            Button(onClick = { showCupCapacityPicker = true }, colors = ButtonDefaults.buttonColors(containerColor = ButtonColor)) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("杯容量")
-                    Text("${user?.cupcapacity ?: 0}ml", color = Color.Black)
+        Spacer(modifier = Modifier.height(16.dp))
+        user?.let {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
+                Text(text = "用户名: ${it.username}", style = MaterialTheme.typography.bodyLarge)
+                IconButton(onClick = { showEditDialog=true }) {
+                    Icon(imageVector = Icons.Filled.Edit, contentDescription = "修改")
                 }
             }
 
-        }
-
-
-        // Daily Assignment Button
-        Button(onClick = { showAssignmentPicker = true }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = ButtonColor)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "每日目标", modifier = Modifier.weight(1f), color = Color.Black)
-                Text(text = "${user?.assignment ?: 0}ml", color = Color.Black)
+            Text(text = "昵称: ${it.nickname}", style = MaterialTheme.typography.bodyLarge)
+            Text(text = "性别: ${it.gender}", style = MaterialTheme.typography.bodyLarge)
+            Text(text = "签名: ${it.signature}", style = MaterialTheme.typography.bodyLarge)
+            Text(text = "身高: ${it.height}", style = MaterialTheme.typography.bodyLarge)
+            Text(text = "体重: ${it.weight}", style = MaterialTheme.typography.bodyLarge)
+            Text(text = "杯子容量: ${it.cupcapacity}", style = MaterialTheme.typography.bodyLarge)
+            Text(text = "饮水任务: ${it.assignment}", style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = {showHistoryDialog=true}) {
+                Text(text = "查看历史饮水记录")
             }
         }
-
-
-
-        // Other buttons from the image
-        Button(onClick = { showHistoryDialog = true }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = ButtonColor)) {
-            Text(text = "我的打卡", color = Color.Black)
-        }
-
-        Button(onClick = { /* Handle action */ }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = ButtonColor)) {
-            Text(text = "含水量表", color = Color.Black)
-        }
-        Button(onClick = { /* Handle action */ }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = ButtonColor)) {
-            Text(text = "关于我们", color = Color.Black)
-        }
-
-        Button(onClick = { /* Handle action */ }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = ButtonColor)) {
-            Text(text = "修改密码", color = Color.Black)
-        }
-        Button(onClick = { /* Handle action */ }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = ButtonColor)) {
-            Text(text = "当前版本 1.0", color = Color.Black)
-        }
-
-        Button(onClick = { /* Handle action */ }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = ButtonColor)) {
-            Text(text = "退出登录", color = Color.Black)
-        }
-    }
-    // Pickers
-    if (showGenderPicker) {
-        GenderPickerDialog(onDismiss = { showGenderPicker = false }, onGenderSelected = { gender ->
-            viewModel.updateGender(gender)
-        })
-    }
-
-    if (showHeightPicker) {
-        NumberPickerDialog(
-            title = "选择身高",
-            onDismiss = { showHeightPicker = false },
-            onValueSelected = { value -> viewModel.updateHeight(value) },
-            minValue = 100,
-            maxValue = 250,
-            initValue = user?.height ?: 170
-        )
-    }
-
-    if (showWeightPicker) {
-        NumberPickerDialog(
-            title = "选择体重",
-            onDismiss = { showWeightPicker = false },
-            onValueSelected = { value -> viewModel.updateWeight(value) },
-            minValue = 30,
-            maxValue = 200,
-            initValue = user?.weight ?: 70
-        )
-    }
-
-    if (showCupCapacityPicker) {
-        NumberPickerDialog(
-            title = "选择杯容量",
-            onDismiss = { showCupCapacityPicker = false },
-            onValueSelected = { value -> viewModel.updateCupCapacity(value) },
-            minValue = 200,
-            maxValue = 2000,
-            initValue = user?.cupcapacity ?: 1500
-        )
-    }
-
-    if (showAssignmentPicker) {
-        NumberPickerDialog(
-            title = "选择每日目标",
-            onDismiss = { showAssignmentPicker = false },
-            onValueSelected = { value -> viewModel.updateAssignment(value) },
-            minValue = 500,
-            maxValue = 5000,
-            initValue = user?.assignment ?: 2000
-        )
-    }
-
-    if (showNicknameDialog) {
-        EditDialog(
-            title = "请输入新昵称",
-            initialValue = user?.nickname ?: "",
-            onDismiss = { showNicknameDialog = false },
-            onValueChange = { newNickname -> viewModel.updateNickname(newNickname) }
-        )
-    }
-    if (showSignatureDialog) {
-        EditDialog(
-            title = "请输入新个性签名",
-            initialValue = user?.signature ?: "",
-            onDismiss = { showSignatureDialog = false },
-            onValueChange = { newSignature -> viewModel.updateSignature(newSignature) }
-        )
-    }
-
-    if (showHistoryDialog) {
-        HistoryDialog(
-            username = user?.username ?: "",
-            onDismiss = { showHistoryDialog = false },
-            viewModel = viewModel
-        )
     }
 }
 
-
 @Composable
-fun EditDialog(
-    title: String,
-    initialValue: String,
-    onDismiss: () -> Unit,
-    onValueChange: (String) -> Unit
-) {
-    var text by remember { mutableStateOf(initialValue) }
+fun EditDialog(user: User?, onDismiss: () -> Unit, viewModel: UserViewModel) {
 
-    AlertDialog(
+    var nickname by remember { mutableStateOf(user?.nickname ?: "") }
+    var gender by remember { mutableStateOf(user?.gender ?: "") }
+    var signature by remember { mutableStateOf(user?.signature ?: "") }
+    var height by remember { mutableStateOf(user?.height?.toString() ?: "") }
+    var weight by remember { mutableStateOf(user?.weight?.toString() ?: "") }
+    var cupcapacity by remember { mutableStateOf(user?.cupcapacity?.toString() ?: "") }
+    var assignment by remember { mutableStateOf(user?.assignment?.toString() ?: "") }
+
+    Dialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = title) },
-        text = {
-            TextField(
-                value = text,
-                onValueChange = { text = it }
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            OutlinedTextField(
+                value = nickname,
+                onValueChange = { nickname = it },
+                label = { Text("昵称") },
+                modifier = Modifier.fillMaxWidth()
             )
-        },
-        confirmButton = {
-            Button(onClick = {
-                onValueChange(text)
-                onDismiss()
-            }) {
-                Text(text = "确定")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = "取消")
-            }
-        }
-    )
-}
-
-
-@Composable
-fun NumberPickerDialog(
-    title: String,
-    onDismiss: () -> Unit,
-    onValueSelected: (Int) -> Unit,
-    minValue: Int,
-    maxValue: Int,
-    initValue: Int
-) {
-    var currentValue by remember { mutableStateOf(initValue) }
-    AlertDialog(
-        onDismissRequest = { onDismiss() },
-        title = { Text(title) },
-        text = {
-            NumberPicker(
-                value = currentValue,
-                onValueChange = { currentValue = it },
-                range = minValue..maxValue
+            OutlinedTextField(
+                value = gender,
+                onValueChange = { gender = it },
+                label = { Text("性别") },
+                modifier = Modifier.fillMaxWidth()
             )
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                onValueSelected(currentValue)
-                onDismiss()
-            }) {
-                Text("确认")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = { onDismiss() }) {
-                Text("取消")
-            }
-        }
-    )
-}
+            OutlinedTextField(
+                value = signature,
+                onValueChange = { signature = it },
+                label = { Text("签名") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = height,
+                onValueChange = { height = it },
+                label = { Text("身高") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = weight,
+                onValueChange = { weight = it },
+                label = { Text("体重") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = cupcapacity,
+                onValueChange = { cupcapacity = it },
+                label = { Text("杯子容量") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = assignment,
+                onValueChange = { assignment = it },
+                label = { Text("饮水任务") },
+                modifier = Modifier.fillMaxWidth()
+            )
 
+            Spacer(modifier = Modifier.height(16.dp))
 
-@Composable
-fun GenderPickerDialog(onDismiss: () -> Unit, onGenderSelected: (String) -> Unit) {
-    AlertDialog(
-        onDismissRequest = { onDismiss() },
-        title = { Text("选择性别") },
-        text = {
-            Column {
-                TextButton(onClick = {
-                    onGenderSelected("男")
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = onDismiss) {
+                    Text("取消")
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(onClick = {
+                    val updateUser = User(
+                        id = user?.id ?: 0,
+                        username = user?.username ?: "",
+                        nickname = nickname,
+                        gender = gender,
+                        signature = signature,
+                        height = height.toIntOrNull(),
+                        weight = weight.toIntOrNull(),
+                        cupcapacity = cupcapacity.toIntOrNull(),
+                        assignment = assignment.toIntOrNull()
+                    )
+                    viewModel.updateUserInfo(updateUser)
                     onDismiss()
                 }) {
-                    Text(text = "男", color = Color.Black)
+                    Text("确认")
                 }
-                TextButton(onClick = {
-                    onGenderSelected("女")
-                    onDismiss()
-                }) {
-                    Text(text = "女", color = Color.Black)
-                }
-            }
-
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = { onDismiss() }) {
-                Text("取消")
             }
         }
-    )
+    }
 }
-
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -342,31 +201,58 @@ fun HistoryDialog(username: String, onDismiss: () -> Unit, viewModel: UserViewMo
     val history by viewModel.history.collectAsState()
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+    val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+
+    val datePickerState = rememberDatePickerState()
+
+    val datePickerDialog = DatePickerDialog(
+        onDismissRequest = onDismiss,
+        state = datePickerState,
+        confirmButton = {
+            TextButton(onClick = {
+                datePickerState.selectedDateMillis?.let {
+                    selectedDate = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
+                    viewModel.fetchUserHistory(username, selectedDate.toString())
+                    onDismiss()
+                }
+            } ) {
+                Text("确认")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("取消")
+            }
+        }
+    )
+
+    LaunchedEffect(key1 = selectedDate){
+        viewModel.fetchUserHistory(username, selectedDate.toString())
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("饮水记录") },
-        text = {
+        content = {
             Column {
-                DatePicker(
-                    selectedDate = selectedDate,
-                    onDateChange = {
-                        selectedDate = it
-                        viewModel.fetchUserHistory(username, it.toString())
-                    }
-                )
+                Button(onClick = { datePickerDialog.show() }) {
+                    Text(text = "选择日期")
+                }
                 history?.let {
                     if (it.isEmpty()) {
                         Text("暂无数据")
                     } else {
-                        it.forEach { historyItem ->
-                            Text(
-                                text = "时间:${historyItem.createdAt?.format(formatter)},饮用量:${historyItem.drink},类型${historyItem.type}"
-                            )
+                        LazyColumn{
+                            items(it.size){index ->
+                                val historyItem = it[index]
+                                Text(
+                                    text = "时间:${historyItem.createdAt?.let { simpleDateFormat.format(it) }},饮用量:${historyItem.drink},类型${historyItem.type}"
+                                )
+                            }
                         }
                     }
                 }
             }
-
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
@@ -375,35 +261,9 @@ fun HistoryDialog(username: String, onDismiss: () -> Unit, viewModel: UserViewMo
         }
     )
 }
-
+@Preview
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
-fun DatePicker(selectedDate: LocalDate, onDateChange: (LocalDate) -> Unit) {
-    var showDatePicker by remember { mutableStateOf(false) }
-    TextButton(onClick = { showDatePicker = true }) {
-        Text(selectedDate.toString())
-    }
-    if (showDatePicker) {
-        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = selectedDate.toEpochDay())
-        Material3DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    showDatePicker = false
-                    onDateChange(LocalDate.ofEpochDay(datePickerState.selectedDateMillis!! / (24 * 60 * 60 * 1000)))
-                }) {
-                    Text("确认")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text("取消")
-                }
-            }
-        ) {
-            Material3DatePicker(
-                state = datePickerState
-            )
-        }
-    }
+fun PreviewUserScreen() {
+    val viewModel : UserViewModel = viewModel()
+    UserScreen(viewModel = viewModel)
 }
