@@ -1,6 +1,5 @@
 package com.guit.edu.myapplication.ui
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,7 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -47,13 +46,8 @@ import com.guit.edu.myapplication.entity.User
 import com.guit.edu.myapplication.viewmodel.UserViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.time.Instant
-import java.time.ZoneId
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
-import java.text.SimpleDateFormat
-import java.util.Locale
-
 
 @Composable
 fun UserScreen(viewModel: UserViewModel) {
@@ -61,16 +55,10 @@ fun UserScreen(viewModel: UserViewModel) {
     var showEditDialog by remember { mutableStateOf(false) }
     var showHistoryDialog by remember { mutableStateOf(false) }
     if (showEditDialog) {
-        EditDialog(user = user, onDismiss = { showEditDialog = false }, viewModel = viewModel)
+        EditDialog(user=user, onDismiss = {showEditDialog=false}, viewModel = viewModel)
     }
-    if (showHistoryDialog) {
-        user?.let {
-//            HistoryDialog(
-//                username = it.username,
-//                onDismiss = { showHistoryDialog = false },
-//                viewModel = viewModel
-//            )
-        }
+    if(showHistoryDialog){
+        user?.let {  HistoryDialog(username = it.username, onDismiss = {showHistoryDialog=false}, viewModel = viewModel) }
     }
 
     Column(
@@ -90,12 +78,9 @@ fun UserScreen(viewModel: UserViewModel) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         user?.let {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
                 Text(text = "用户名: ${it.username}", style = MaterialTheme.typography.bodyLarge)
-                IconButton(onClick = { showEditDialog = true }) {
+                IconButton(onClick = { showEditDialog=true }) {
                     Icon(imageVector = Icons.Filled.Edit, contentDescription = "修改")
                 }
             }
@@ -108,16 +93,18 @@ fun UserScreen(viewModel: UserViewModel) {
             Text(text = "杯子容量: ${it.cupcapacity}", style = MaterialTheme.typography.bodyLarge)
             Text(text = "饮水任务: ${it.assignment}", style = MaterialTheme.typography.bodyLarge)
             Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = { showHistoryDialog = true }) {
+            Button(onClick = {showHistoryDialog=true}) {
                 Text(text = "查看历史饮水记录")
             }
         }
+
     }
+
 }
 
 @Composable
 fun EditDialog(user: User?, onDismiss: () -> Unit, viewModel: UserViewModel) {
-    val context = LocalContext.current
+
     var nickname by remember { mutableStateOf(user?.nickname ?: "") }
     var gender by remember { mutableStateOf(user?.gender ?: "") }
     var signature by remember { mutableStateOf(user?.signature ?: "") }
@@ -197,7 +184,6 @@ fun EditDialog(user: User?, onDismiss: () -> Unit, viewModel: UserViewModel) {
                         assignment = assignment.toIntOrNull()
                     )
                     viewModel.updateUserInfo(updateUser)
-                    Toast.makeText(context, "修改成功", Toast.LENGTH_SHORT).show()
                     onDismiss()
                 }) {
                     Text("确认")
@@ -207,77 +193,73 @@ fun EditDialog(user: User?, onDismiss: () -> Unit, viewModel: UserViewModel) {
     }
 }
 
-//@Composable
-//@OptIn(ExperimentalMaterial3Api::class)
-//fun HistoryDialog(username: String, onDismiss: () -> Unit, viewModel: UserViewModel) {
-//    val history by viewModel.history.collectAsState()
-//    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-//    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
-//    val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-//    val datePickerState = rememberDatePickerState()
-//
-//    val datePickerDialog = remember {
-//        DatePickerDialog(
-//            onDismissRequest = onDismiss,
-//            state = datePickerState,
-//            confirmButton = {
-//                TextButton(onClick = {
-//                    datePickerState.selectedDateMillis?.let {
-//                        selectedDate = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault())
-//                            .toLocalDate()
-//                        viewModel.fetchUserHistory(username, selectedDate.toString())
-//                        onDismiss()
-//                    }
-//                }) {
-//                    Text("确认")
-//                }
-//            },
-//            dismissButton = {
-//                TextButton(onClick = onDismiss) {
-//                    Text("取消")
-//                }
-//            }
-//        )
-//    }
-//
-//
-//    LaunchedEffect(key1 = selectedDate) {
-//        viewModel.fetchUserHistory(username, selectedDate.toString())
-//    }
-//
-//    AlertDialog(
-//        onDismissRequest = onDismiss,
-//        title = { Text("饮水记录") },
-//        content = {
-//            Column {
-//                Button(onClick = { datePickerDialog.show() }) {
-//                    Text(text = "选择日期")
-//                }
-//                history?.let {
-//                    if (it.isEmpty()) {
-//                        Text("暂无数据")
-//                    } else {
-//                        LazyColumn {
-//                            items(it.size) { index ->
-//                                val historyItem = it[index]
-//                                Text(
-//                                    text = "时间:${
-//                                        historyItem.createdAt?.let { simpleDateFormat.format(it) }
-//                                    },饮用量:${historyItem.drink},类型${historyItem.type}"
-//                                )
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        },
-//        confirmButton = {
-//            TextButton(onClick = onDismiss) {
-//                Text("关闭")
-//            }
-//        }
-//    )
-//}
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+fun HistoryDialog(username: String, onDismiss: () -> Unit, viewModel: UserViewModel) {
+    val history by viewModel.history.collectAsState()
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    var datePickerState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis())
+    var showDatePicker by remember{ mutableStateOf(false)}
+    LaunchedEffect(key1 = datePickerState.selectedDateMillis){
+        datePickerState.selectedDateMillis?.let {
+            val date = LocalDate.ofEpochDay(it / (24 * 60 * 60 * 1000))
+            viewModel.fetchUserHistory(username, date.toString())
+        }
+    }
+
+    if(showDatePicker){
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("确认")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("取消")
+                }
+            }
+        ){
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("饮水记录") },
+        text = {
+            Column {
+                Button(onClick = {showDatePicker = true}) {
+                    Text(text = "选择日期")
+                }
+                history?.let {
+                    if (it.isEmpty()) {
+                        Text("暂无数据")
+                    } else {
+                        LazyColumn{
+                            items(it.size){index ->
+                                val historyItem = it[index]
+                                val localDateTime = historyItem.createdAt?.toInstant()?.atZone(java.time.ZoneId.systemDefault())?.toLocalDateTime()
+                                Text(
+                                    text = "时间:" + (localDateTime?.format(formatter) ?: "未知") + ",饮用量:" + historyItem.drink + ",类型:" + historyItem.type
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("关闭")
+            }
+        }
+    )
+}
+
+
 @Preview
 @Composable
 fun PreviewUserScreen() {

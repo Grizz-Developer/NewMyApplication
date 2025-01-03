@@ -1,7 +1,9 @@
 package com.guit.edu.myapplication.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.guit.edu.myapplication.DataStoreUtil
 import com.guit.edu.myapplication.RetrofitUtil
 import com.guit.edu.myapplication.entity.LoginResult
 import com.guit.edu.myapplication.net.Result
@@ -13,11 +15,10 @@ import java.io.IOException
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.schedulers.Schedulers
 
-class LoginViewModel: ViewModel() {
+class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _loginResult = MutableStateFlow<Result<LoginResult>>(Result.Idle)
     val loginResult: StateFlow<Result<LoginResult>> = _loginResult
-
 
     fun login(username: String,password:String) {
         viewModelScope.launch {
@@ -34,6 +35,26 @@ class LoginViewModel: ViewModel() {
                         _loginResult.value = Result.Error("IOException")
                     }
                 })
+        }
+    }
+    fun saveToken(token: String) {
+        viewModelScope.launch {
+            DataStoreUtil.saveToken(getApplication(), token)
+        }
+    }
+    fun saveRememberPasswordAndPwd(remember: Boolean,password: String){
+        viewModelScope.launch {
+            DataStoreUtil.saveRememberPassword(getApplication(), remember)
+            if(remember){
+                DataStoreUtil.savePassword(getApplication(), password)
+            }else{
+                DataStoreUtil.savePassword(getApplication(), "")
+            }
+        }
+    }
+    fun saveUsername(username: String){
+        viewModelScope.launch {
+            DataStoreUtil.saveUsername(getApplication(), username)
         }
     }
 }
